@@ -12,7 +12,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faPlus, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { show_alerta } from "../functions.jsx";
 
-
 export const Equipos = () => {
   const url = 'https://sgemvite-back-turso-sql.vercel.app/equipos';
   const [equipos, updateEquipo] = useState([]);
@@ -68,7 +67,6 @@ export const Equipos = () => {
 
   const closeModal = () => {
     setShowModal(false);
-    getEquipos();
   }
 
   const validar = () => {
@@ -123,11 +121,11 @@ export const Equipos = () => {
 
     await axios({ method: metodo, url: endpoint, data: metodo !== 'DELETE' ? parametros : {} })
       .then(function (respuesta) {
-        const { tipo, mensaje } = respuesta.data;
+        const { tipo, mensaje, equipo } = respuesta.data;
         show_alerta(mensaje, tipo);
         if (tipo === 'success') {
           closeModal();
-          getEquipos();          
+          getEquipos();
         }
       })
       .catch(function (error) {
@@ -152,7 +150,6 @@ export const Equipos = () => {
       }
     })
   }
-
 
   const filteredEquipos = equipos.filter(
     equipo =>
@@ -183,99 +180,67 @@ export const Equipos = () => {
       cell: row => (
         <>
           <Button
-            onClick={() => openModal(3, row.id_equipo, row.nombre, row.tipo, row.marca, row.modelo, row.serie, row.ae_title, row.ip_address, row.ubicacion, row.id_sede)}
+            onClick={() => openModal(2, row.id_equipo, row.nombre, row.tipo, row.marca, row.modelo, row.serie, row.ae_title, row.ip_address, row.ubicacion, row.id_sede)}
             className='btn btn-warning'
           >
             <FontAwesomeIcon icon={faEdit} />
           </Button>
-          <Button variant="danger" onClick={() => deleteEquipo(row.id_equipo, row.nombre)}>
+          &nbsp;
+          <Button onClick={() => deleteEquipo(row.id_equipo, row.nombre)} className='btn btn-danger'>
             <FontAwesomeIcon icon={faTrash} />
           </Button>
         </>
       ),
-      ignoreRowClick: true,
     },
   ];
 
   return (
-    <div className="d-flex">
-      <div>
-        <Sidebar />
+    <div className="container-fluid">
+      <Sidebar />
+      <Navbar />
+      <div className="table-responsive">
+        <div className="table-wrapper">
+          <div className="table-title">
+            <div className="row">
+              <div className="col-sm-6">
+                <h2 className="text-start">Gestión de <b>Equipos</b></h2>
+              </div>
+              <div className="col-sm-6">
+                <Button onClick={() => openModal(1)} className='btn btn-success'>
+                  <FontAwesomeIcon icon={faPlus} /> <span>Agregar</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col-sm-12">
+              <div className="form-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Buscar equipo"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <DataTable
+            columns={columns}
+            data={filteredEquipos}
+            pagination
+            paginationComponentOptions={{ rowsPerPageText: 'Filas por página:', rangeSeparatorText: 'de' }}
+            noDataComponent={<p>No se encontraron datos</p>}
+          />
+        </div>
       </div>
-      <div
-        style={{
-          flex: "1 1 auto",
-          display: "flex",
-          flexFlow: "column",
-          height: "100vh",
-          overflowY: "hidden",
-        }}
-      >
-        <Navbar />
-        <div style={{ height: "100%" }}>
-          <div
-            style={{
-              padding: "20px 5%",
-              height: "calc(100% - 64px)",
-              overflowY: "scroll",
-              margin: "0 auto",
-            }}
-          >
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(1, minmax(100%, 100%))" }}>
-              <div className="mt-5 w-100">
-                <h1>Equipos</h1>        
-                {error && <div className="alert alert-danger" role="alert">{error}</div>}
-                {loading ? (
-                  <div className="d-flex justify-content-center">
-                    <div className="spinner-border" role="status">
-                      <span className="sr-only">Loading...</span>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="d-flex justify-content-end mb-3">
-                      <input
-                        type="text"
-                        placeholder="Buscar..."
-                        className="form-control"
-                        style={{ maxWidth: '300px' }}
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                      />
-                      <Button
-                      onClick={() => openModal(1)} 
-                      className='btn btn-dark' 
-                      data-bs-toggle='modal' 
-                      data-bs-target='#modalEquipos'>
-                        <FontAwesomeIcon icon={faPlus} /> Añadir
-                      </Button>
-
-                      <Button variant="download" className="ms-2">
-                        <FontAwesomeIcon icon={faDownload} /> Exportar
-                      </Button>
-
-                    </div>
-                    <DataTable
-                      columns={columns}
-                      data={filteredEquipos}
-                      pagination
-                    />
-                    <Modal show={showModal} onHide={closeModal}>
+      <Modal show={showModal} onHide={closeModal}>
         <Modal.Header closeButton>
           <Modal.Title>{title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group controlId="id_equipo">
-              <Form.Label>Id equipo</Form.Label>
-              <Form.Control
-                type="text"
-                value={id_equipo}
-                onChange={(e) => setId_equipo(e.target.value)}
-                disabled={operation === 3}
-              />
-            </Form.Group>
-            <Form.Group controlId="nombre">
+            <Form.Group>
               <Form.Label>Nombre</Form.Label>
               <Form.Control
                 type="text"
@@ -283,7 +248,7 @@ export const Equipos = () => {
                 onChange={(e) => setNombre(e.target.value)}
               />
             </Form.Group>
-            <Form.Group controlId="tipo">
+            <Form.Group>
               <Form.Label>Tipo</Form.Label>
               <Form.Control
                 type="text"
@@ -291,7 +256,7 @@ export const Equipos = () => {
                 onChange={(e) => setTipo(e.target.value)}
               />
             </Form.Group>
-            <Form.Group controlId="marca">
+            <Form.Group>
               <Form.Label>Marca</Form.Label>
               <Form.Control
                 type="text"
@@ -299,7 +264,7 @@ export const Equipos = () => {
                 onChange={(e) => setMarca(e.target.value)}
               />
             </Form.Group>
-            <Form.Group controlId="modelo">
+            <Form.Group>
               <Form.Label>Modelo</Form.Label>
               <Form.Control
                 type="text"
@@ -307,7 +272,7 @@ export const Equipos = () => {
                 onChange={(e) => setModelo(e.target.value)}
               />
             </Form.Group>
-            <Form.Group controlId="serie">
+            <Form.Group>
               <Form.Label>Serie</Form.Label>
               <Form.Control
                 type="text"
@@ -315,7 +280,7 @@ export const Equipos = () => {
                 onChange={(e) => setSerie(e.target.value)}
               />
             </Form.Group>
-            <Form.Group controlId="ae_title">
+            <Form.Group>
               <Form.Label>Ae Title</Form.Label>
               <Form.Control
                 type="text"
@@ -323,7 +288,7 @@ export const Equipos = () => {
                 onChange={(e) => setAe_title(e.target.value)}
               />
             </Form.Group>
-            <Form.Group controlId="ip_address">
+            <Form.Group>
               <Form.Label>Ip Address</Form.Label>
               <Form.Control
                 type="text"
@@ -331,15 +296,15 @@ export const Equipos = () => {
                 onChange={(e) => setIp_address(e.target.value)}
               />
             </Form.Group>
-            <Form.Group controlId="ubicacion">
-              <Form.Label>Ubicación</Form.Label>
+            <Form.Group>
+              <Form.Label>Ubicacion</Form.Label>
               <Form.Control
                 type="text"
                 value={ubicacion}
                 onChange={(e) => setUbicacion(e.target.value)}
               />
             </Form.Group>
-            <Form.Group controlId="id_sede">
+            <Form.Group>
               <Form.Label>Id Sede</Form.Label>
               <Form.Control
                 type="text"
@@ -347,26 +312,12 @@ export const Equipos = () => {
                 onChange={(e) => setId_sede(e.target.value)}
               />
             </Form.Group>
+            <Button onClick={validar} className="btn btn-success mt-3">
+              Guardar
+            </Button>
           </Form>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" className="btnCerrar" onClick={closeModal}>
-            Cerrar
-          </Button>
-          <Button variant="primary" onClick={validar}>
-            Guardar
-          </Button>
-        </Modal.Footer>
       </Modal>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
-};
-
-export default Equipos;
+}

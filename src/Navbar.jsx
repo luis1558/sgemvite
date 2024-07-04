@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { CDBNavbar } from 'cdbreact';
 import { Header, NotificationPanel } from './Navbar.style';
 
@@ -11,6 +11,7 @@ const Navbar = () => {
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
+  
 
   return (
     <Header style={{ background: "#333", color: "#fff" }}>
@@ -31,9 +32,9 @@ const Navbar = () => {
         {/* Panel de notificaciones que se muestra condicionalmente */}
         {showNotifications && (
           <NotificationPanel>
-            <p>Notificación 1</p>
-            <p>Notificación 2</p>
-            <p>Notificación 3</p>
+
+            
+
           </NotificationPanel>
         )}
       </div>
